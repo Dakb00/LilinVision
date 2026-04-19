@@ -1,0 +1,184 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* VisionGuard — deep slate surveillance theme */
+    --background: 220 20% 8%;
+    --foreground: 210 15% 88%;
+
+    --card: 220 18% 10%;
+    --card-foreground: 210 15% 88%;
+
+    --popover: 220 18% 10%;
+    --popover-foreground: 210 15% 88%;
+
+    --primary: 195 85% 48%;
+    --primary-foreground: 220 20% 8%;
+
+    --secondary: 220 15% 16%;
+    --secondary-foreground: 210 15% 75%;
+
+    --muted: 220 15% 14%;
+    --muted-foreground: 210 10% 55%;
+
+    --accent: 195 80% 42%;
+    --accent-foreground: 220 20% 8%;
+
+    --destructive: 4 85% 55%;
+    --destructive-foreground: 210 15% 95%;
+
+    --border: 220 15% 18%;
+    --input: 220 15% 14%;
+    --ring: 195 85% 48%;
+
+    --radius: 0.5rem;
+
+    /* Custom tokens */
+    --color-success: #22c55e;
+    --color-warning: #f59e0b;
+    --color-alert: #ef4444;
+    --color-inactive: #64748b;
+    --color-online: #22c55e;
+
+    --sidebar-bg: 220 22% 7%;
+    --sidebar-border: 220 15% 14%;
+
+    /* Chart colors */
+    --chart-1: 195 85% 48%;
+    --chart-2: 142 70% 45%;
+    --chart-3: 38 95% 54%;
+    --chart-4: 4 85% 55%;
+    --chart-5: 270 70% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', 'DM Sans', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+}
+
+/* ── Scan line overlay for camera feeds ── */
+.scanline-overlay {
+  position: relative;
+  overflow: hidden;
+}
+.scanline-overlay::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.04) 2px,
+    rgba(0, 0, 0, 0.04) 4px
+  );
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* ── Camera feed aspect ratio ── */
+.camera-feed {
+  background: hsl(220 22% 6%);
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── Detection badge pulse ── */
+@keyframes det-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.det-pulse {
+  animation: det-pulse 1.5s ease-in-out infinite;
+}
+
+/* ── Status dot ── */
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.status-dot.active { background: var(--color-online); box-shadow: 0 0 6px var(--color-online); }
+.status-dot.inactive { background: var(--color-inactive); }
+.status-dot.error { background: var(--color-alert); box-shadow: 0 0 6px var(--color-alert); animation: det-pulse 1s ease-in-out infinite; }
+
+/* ── Bounding box overlay ── */
+.bbox {
+  position: absolute;
+  border: 2px solid;
+  border-radius: 2px;
+  pointer-events: none;
+  z-index: 3;
+}
+.bbox.person { border-color: #22c55e; }
+.bbox.car, .bbox.truck, .bbox.motorcycle { border-color: #3b82f6; }
+.bbox.default { border-color: #f59e0b; }
+
+/* ── Sidebar ── */
+.sidebar-nav-item {
+  @apply flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer;
+  color: hsl(210 10% 55%);
+}
+.sidebar-nav-item:hover {
+  background: hsl(220 15% 14%);
+  color: hsl(210 15% 88%);
+}
+.sidebar-nav-item.active {
+  background: hsl(195 85% 48% / 0.12);
+  color: hsl(195 85% 60%);
+}
+
+/* ── Camera grid ── */
+.camera-grid-1 { grid-template-columns: 1fr; }
+.camera-grid-2 { grid-template-columns: 1fr 1fr; }
+.camera-grid-4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+.camera-grid-6 { grid-template-columns: repeat(3, 1fr); }
+
+/* ── Shimmer skeleton ── */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, hsl(220 15% 14%) 25%, hsl(220 15% 18%) 50%, hsl(220 15% 14%) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: hsl(220 15% 22%); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: hsl(220 15% 30%); }
+
+/* ── Alert flash ── */
+@keyframes alert-flash {
+  0%, 100% { background: hsl(4 85% 55% / 0.08); }
+  50% { background: hsl(4 85% 55% / 0.18); }
+}
+.alert-row { animation: alert-flash 2s ease-in-out infinite; }
+
+/* ── VMS API code block ── */
+.api-block {
+  background: hsl(220 22% 6%);
+  border: 1px solid hsl(220 15% 18%);
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 12px;
+  padding: 12px 16px;
+  overflow-x: auto;
+  color: hsl(195 85% 60%);
+}
