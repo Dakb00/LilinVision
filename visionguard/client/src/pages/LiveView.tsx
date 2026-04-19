@@ -48,53 +48,26 @@ function CameraFeed({ camera, detections }: { camera: Camera; detections: Detect
 
       {/* Feed area */}
       <div className="relative flex-1 flex items-center justify-center" style={{ background: "hsl(220 25% 5%)" }}>
-        {camera.status === "active" ? (
+        {camera.status === "Connected" || camera.status === "active" ? (
           <>
-            {/* Simulated feed — in production would be HLS/WebRTC stream */}
+            {/* REAL MJPEG Stream from C++ Backend */}
             <div className="w-full h-full relative overflow-hidden">
-              {/* Grid pattern background simulating a real feed */}
-              <div className="absolute inset-0" style={{
-                background: `
-                  radial-gradient(ellipse at 30% 40%, hsl(220 25% 10%) 0%, hsl(220 25% 6%) 100%)
-                `,
-              }}>
-                {/* Simulated scene elements */}
-                <div className="absolute bottom-0 left-0 right-0 h-1/3" style={{ background: "hsl(220 20% 8%)", borderTop: "1px solid hsl(220 15% 12%)" }} />
-                <div className="absolute top-1/4 left-1/4 w-4 h-10 opacity-20" style={{ background: "hsl(0 0% 80%)" }} />
-                <div className="absolute top-1/4 right-1/3 w-3 h-8 opacity-15" style={{ background: "hsl(0 0% 75%)" }} />
-              </div>
-
-              {/* Detection bounding boxes */}
-              {recent.map((det) => {
-                const bb = JSON.parse(det.boundingBox);
-                return (
-                  <div
-                    key={det.id}
-                    className="bbox"
-                    style={{
-                      left: `${bb.x * 100}%`,
-                      top: `${bb.y * 100}%`,
-                      width: `${bb.w * 100}%`,
-                      height: `${bb.h * 100}%`,
-                      borderColor: bboxColor(det.label),
-                    }}
-                  >
-                    <span
-                      className="absolute -top-5 left-0 text-xs px-1 font-medium leading-none py-0.5 rounded-sm"
-                      style={{ background: bboxColor(det.label), color: "white", fontSize: 10, whiteSpace: "nowrap" }}
-                    >
-                      {det.label} {(det.confidence * 100).toFixed(0)}%
-                    </span>
-                  </div>
-                );
-              })}
+               <img 
+                src={`http://localhost:5000/api/v1/stream/${camera.id}`}
+                alt={camera.name}
+                className="w-full h-full object-contain"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "";
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
             </div>
 
             {/* Stream info bottom overlay */}
             <div className="absolute bottom-0 left-0 right-0 px-2 py-1 z-10" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.7), transparent)" }}>
               <div className="flex items-center justify-between">
                 <span className="text-xs font-mono" style={{ color: "rgba(255,255,255,0.4)", fontSize: 10 }}>
-                  {camera.streamUrl}
+                  {camera.rtsp_url || camera.streamUrl}
                 </span>
                 <span className="text-xs font-mono" style={{ color: "rgba(255,255,255,0.3)", fontSize: 10 }}>
                   {new Date().toLocaleTimeString()}
@@ -102,16 +75,10 @@ function CameraFeed({ camera, detections }: { camera: Camera; detections: Detect
               </div>
             </div>
           </>
-        ) : camera.status === "error" ? (
-          <div className="flex flex-col items-center gap-2" style={{ color: "hsl(4 85% 55%)" }}>
-            <WifiOff size={28} />
-            <span className="text-xs font-medium">Connection Error</span>
-            <span className="text-xs" style={{ color: "hsl(210 10% 35%)" }}>{camera.streamUrl}</span>
-          </div>
         ) : (
           <div className="flex flex-col items-center gap-2" style={{ color: "hsl(210 10% 35%)" }}>
             <WifiOff size={24} />
-            <span className="text-xs">Camera Offline</span>
+            <span className="text-xs">Camera {camera.status}</span>
           </div>
         )}
       </div>

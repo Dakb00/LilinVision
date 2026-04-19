@@ -5,10 +5,17 @@ LilinVision is a unified workspace for advanced video surveillance and AI-powere
 ## Project Overview
 
 - **[Darknet (YOLO)](darknet/):** A state-of-the-art, real-time object detection framework. This version (V3+) is modernized with C++17, CUDA, and ROCm support, maintaining the legacy of YOLOv3, YOLOv4, and YOLOv7.
-- **[DarkHelp](DarkHelp/):** A C++17 wrapper for Darknet YOLO. It simplifies network loading, inference, and image annotation, providing an easy-to-use API and several utility tools.
-- **[ZoneMinder](zoneminder/):** A full-featured, open-source video surveillance software system designed for Linux-based machines. It handles capture, analysis, recording, and monitoring of security cameras.
+- **[DarkHelp](DarkHelp/):** A C++17 wrapper for Darknet YOLO.
+- **[vms-lite](vms-lite/):** A custom, high-performance VMS backend built with Clean Architecture. It uses DarkHelp for inference, SQLite for storage, and Crow for the web API.
+- **[ZoneMinder](zoneminder/):** A full-featured, open-source video surveillance software system.
 
 ## Main Technologies
+
+### vms-lite (The "Desk" Project)
+- **Languages:** C++17.
+- **Frameworks:** Crow (Web), OpenCV (Capture/Processing), SQLite3 (Storage).
+- **Architecture:** Hexagonal / Clean Architecture.
+- **Goal:** Lightweight `.deb` package for Ubuntu/WSL2.
 
 ### Darknet (YOLO)
 - **Languages:** C++17, C, CUDA (NVIDIA GPUs), HIP/ROCm (AMD GPUs).
@@ -29,6 +36,7 @@ LilinVision is a unified workspace for advanced video surveillance and AI-powere
 
 - `darknet/`: Core neural network framework and YOLO implementation.
 - `DarkHelp/`: C++ wrapper library and tools for Darknet.
+- `vms-lite/`: Custom VMS implementation using Clean Architecture.
 - `zoneminder/`: Video surveillance server and management system.
 
 ## Building and Running

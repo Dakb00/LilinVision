@@ -39,14 +39,14 @@ function CameraFormDialog({ open, onClose, initial }: { open: boolean; onClose: 
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: InsertCamera) => apiRequest("POST", "/api/cameras", data),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/cameras"] }); toast({ title: "Camera added" }); onClose(); },
+    mutationFn: (data: InsertCamera) => apiRequest("POST", "/api/v1/cameras", data),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/v1/cameras"] }); toast({ title: "Camera added" }); onClose(); },
     onError: () => toast({ title: "Failed to add camera", variant: "destructive" }),
   });
 
   const updateMutation = useMutation({
     mutationFn: (data: InsertCamera) => apiRequest("PATCH", `/api/cameras/${initial?.id}`, data),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/cameras"] }); toast({ title: "Camera updated" }); onClose(); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/v1/cameras"] }); toast({ title: "Camera updated" }); onClose(); },
     onError: () => toast({ title: "Failed to update camera", variant: "destructive" }),
   });
 
@@ -200,20 +200,20 @@ export function Cameras() {
   const [editCam, setEditCam] = useState<Camera | undefined>();
 
   const { data: cameras = [], isLoading } = useQuery<Camera[]>({
-    queryKey: ["/api/cameras"],
-    queryFn: () => apiRequest("GET", "/api/cameras").then((r) => r.json()),
+    queryKey: ["/api/v1/cameras"],
+    queryFn: () => apiRequest("GET", "/api/v1/cameras").then((r) => r.json()),
     refetchInterval: 15000,
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => apiRequest("DELETE", `/api/cameras/${id}`),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/cameras"] }); toast({ title: "Camera removed" }); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/v1/cameras"] }); toast({ title: "Camera removed" }); },
   });
 
   const toggleMutation = useMutation({
     mutationFn: ({ id, enabled }: { id: number; enabled: boolean }) =>
       apiRequest("PATCH", `/api/cameras/${id}`, { detectionEnabled: enabled }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/cameras"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/v1/cameras"] }),
   });
 
   const StatusIcon = ({ status }: { status: string }) => {

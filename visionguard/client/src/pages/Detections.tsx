@@ -28,14 +28,14 @@ export function Detections() {
   if (search) params.set("search", search);
 
   const { data: detections = [], refetch } = useQuery<Detection[]>({
-    queryKey: ["/api/detections", severity, acknowledged, cameraFilter, search, offset],
-    queryFn: () => apiRequest("GET", `/api/detections?${params}`).then((r) => r.json()),
+    queryKey: ["/api/v1/detections", severity, acknowledged, cameraFilter, search, offset],
+    queryFn: () => apiRequest("GET", `/api/v1/detections?${params}`).then((r) => r.json()),
     refetchInterval: 5000,
   });
 
   const { data: cameras = [] } = useQuery<Camera[]>({
-    queryKey: ["/api/cameras"],
-    queryFn: () => apiRequest("GET", "/api/cameras").then((r) => r.json()),
+    queryKey: ["/api/v1/cameras"],
+    queryFn: () => apiRequest("GET", "/api/v1/cameras").then((r) => r.json()),
   });
 
   // WebSocket live updates
@@ -51,13 +51,13 @@ export function Detections() {
 
   const ackMutation = useMutation({
     mutationFn: (id: number) => apiRequest("POST", `/api/detections/${id}/acknowledge`),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/detections"] }); queryClient.invalidateQueries({ queryKey: ["/api/detections/stats"] }); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/v1/detections"] }); queryClient.invalidateQueries({ queryKey: ["/api/detections/stats"] }); },
   });
 
   const ackAllMutation = useMutation({
     mutationFn: () => apiRequest("POST", "/api/detections/acknowledge-all"),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/detections"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/detections"] });
       queryClient.invalidateQueries({ queryKey: ["/api/detections/stats"] });
       toast({ title: "All detections acknowledged" });
     },
