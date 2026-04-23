@@ -6,13 +6,15 @@ namespace vms {
 
 CrowRestServer::CrowRestServer(
     std::shared_ptr<ICameraRepository> repository,
-    std::shared_ptr<StreamManager> stream_manager
-) : m_repository(repository), m_streamManager(stream_manager) {}
+    std::shared_ptr<StreamManager> stream_manager,
+    const std::string& static_path
+) : m_repository(repository), m_streamManager(stream_manager), m_staticPath(static_path) {}
 
 CrowRestServer::~CrowRestServer() {}
 
 void CrowRestServer::run(int port) {
     crow::SimpleApp app;
+    // ... (rest of API routes)
 
     // --- API: List all cameras ---
     CROW_ROUTE(app, "/api/v1/cameras")
@@ -92,17 +94,17 @@ void CrowRestServer::run(int port) {
     });
 
     // --- Static Files (React GUI) ---
-    // Decision 5: Serve from visionguard/client/dist
+    // Decision 5: Serve from configured static path
     CROW_ROUTE(app, "/")
-    ([](const crow::request&, crow::response& res){
-        res.set_static_file_info("/home/yolo/developl/LilinVision/visionguard/client/dist/index.html");
+    ([this](const crow::request&, crow::response& res){
+        res.set_static_file_info(m_staticPath + "/index.html");
         res.end();
     });
 
     // Catch-all for other static assets
     CROW_ROUTE(app, "/assets/<path>")
-    ([](const crow::request&, crow::response& res, std::string path){
-        res.set_static_file_info("/home/yolo/developl/LilinVision/visionguard/client/dist/assets/" + path);
+    ([this](const crow::request&, crow::response& res, std::string path){
+        res.set_static_file_info(m_staticPath + "/assets/" + path);
         res.end();
     });
 

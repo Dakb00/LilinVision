@@ -40,6 +40,7 @@ This document tracks the progress of the VMS Lite project, following Clean Archi
 - [x] **C++ Web Server**
   - [x] Integrate \`Crow\`.
   - [x] Implement REST endpoints (\`/api/v1/cameras\`, \`/api/v1/detections\`).
+  - [x] **Zero-Config Path Resolution**: Implemented dynamic detection of GUI and DB paths.
 - [x] **GUI Integration**
   - [x] Implement MJPEG streaming endpoint (\`/api/v1/stream/{id}\`).
   - [x] Draw AI bounding boxes on live stream.

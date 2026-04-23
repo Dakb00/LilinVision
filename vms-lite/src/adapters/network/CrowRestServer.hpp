@@ -14,7 +14,8 @@ class CrowRestServer {
 public:
     CrowRestServer(
         std::shared_ptr<ICameraRepository> repository,
-        std::shared_ptr<StreamManager> stream_manager
+        std::shared_ptr<StreamManager> stream_manager,
+        const std::string& static_path = "./gui"
     );
     ~CrowRestServer();
 
@@ -26,6 +27,7 @@ public:
 private:
     std::shared_ptr<ICameraRepository> m_repository;
     std::shared_ptr<StreamManager> m_streamManager;
+    std::string m_staticPath;
 };
 
 } // namespace vms

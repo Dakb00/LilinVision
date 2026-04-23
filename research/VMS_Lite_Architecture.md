@@ -42,6 +42,11 @@ To ensure maximum portability and ease of installation:
 *   **Darknet & DarkHelp:** Statically linked (`.a` files) into the main `vms-lite` binary.
 *   **Runtime Dependencies (APT):** `libopencv-videoio4.5`, `libopenblas0-openmp`, `libprotobuf23`, `libmagic1`, `libsqlite3-0`.
 
+### C. The "Zero-Config" Strategy
+To ensure the binary works out-of-the-box:
+*   **GUI Path:** Automatically detects if it's running in a dev environment (`./visionguard/client/dist`) or production (`/usr/share/vms-lite/www`).
+*   **DB Path:** Automatically switches to `/var/lib/vms-lite/history.db` if the system directory exists.
+
 ---
 
 ## 4. Professional Linux Deployment (FHS)
