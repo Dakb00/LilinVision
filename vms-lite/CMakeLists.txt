@@ -119,6 +119,14 @@ install(FILES
     DESTINATION share/vms-lite/models
 )
 
+# Bundle darknet and darkhelp libraries if found manually
+if(DarkHelp_LIBRARY)
+    install(FILES ${DarkHelp_LIBRARY} DESTINATION lib)
+endif()
+if(darknet_LIBRARY)
+    install(FILES ${darknet_LIBRARY} DESTINATION lib)
+endif()
+
 # --- CPack Configuration (.deb) ---
 set(CPACK_GENERATOR "DEB")
 set(CPACK_PACKAGE_NAME "vms-lite")
@@ -129,7 +137,12 @@ set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "High-performance lightweight VMS backend"
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "LilinVision Team")
 set(CPACK_DEBIAN_PACKAGE_SECTION "utils")
 set(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libopencv-dev, libsqlite3-dev, darknet, darkhelp")
+
+# Enable automatic dependency detection (this replaces hardcoding libopencv-dev, etc.)
+set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+# We still need sqlite3-dev usually for the db, but let's see if shlibdeps handles it.
+# If you want to keep some manual ones:
+# set(CPACK_DEBIAN_PACKAGE_DEPENDS "libsqlite3-0") 
 
 # Debian control scripts
 set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA 

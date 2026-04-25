@@ -42,6 +42,10 @@ case "$1" in
             usermod -a -G video "$USER_NAME"
         fi
 
+        # Refresh shared library cache
+        echo "Updating shared library cache..."
+        ldconfig
+
         # 5. Handle Systemd service
         echo "Reloading systemd daemon..."
         systemctl daemon-reload || true
