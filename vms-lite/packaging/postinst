@@ -1,0 +1,71 @@
+#!/bin/sh
+set -e
+
+# --- LilinVision vms-lite Post-Installation Script ---
+
+USER_NAME="vms-lite"
+GROUP_NAME="vms-lite"
+DATA_DIR="/var/lib/vms-lite"
+
+case "$1" in
+    configure)
+        # 1. Create vms-lite group if it doesn't exist
+        if ! getent group "$GROUP_NAME" >/dev/null; then
+            echo "Creating group $GROUP_NAME..."
+            groupadd --system "$GROUP_NAME"
+        fi
+
+        # 2. Create vms-lite user if it doesn't exist
+        if ! getent passwd "$USER_NAME" >/dev/null; then
+            echo "Creating system user $USER_NAME..."
+            useradd --system \
+                --gid "$GROUP_NAME" \
+                --home-dir "$DATA_DIR" \
+                --no-create-home \
+                --shell /usr/sbin/nologin \
+                "$USER_NAME"
+        fi
+
+        # 3. Create and set permissions for the data directory
+        if [ ! -d "$DATA_DIR" ]; then
+            echo "Creating data directory $DATA_DIR..."
+            mkdir -p "$DATA_DIR"
+        fi
+        
+        echo "Setting permissions for $DATA_DIR..."
+        chown -R "$USER_NAME":"$GROUP_NAME" "$DATA_DIR"
+        chmod 750 "$DATA_DIR"
+
+        # 4. Add user to video group to access cameras if needed
+        if getent group video >/dev/null; then
+            echo "Adding $USER_NAME to video group..."
+            usermod -a -G video "$USER_NAME"
+        fi
+
+        # 5. Handle Systemd service
+        echo "Reloading systemd daemon..."
+        systemctl daemon-reload || true
+
+        if [ -z "$2" ]; then
+            # New installation (not an upgrade)
+            echo "Enabling vms-lite service..."
+            systemctl enable vms-lite || true
+            echo "Starting vms-lite service..."
+            systemctl start vms-lite || true
+        else
+            # Upgrade
+            echo "Restarting vms-lite service..."
+            systemctl restart vms-lite || true
+        fi
+        ;;
+
+    abort-upgrade|abort-remove|abort-deconfigure)
+        ;;
+
+    *)
+        echo "postinst called with unknown argument \`$1'" >&2
+        exit 1
+        ;;
+esac
+
+exit 0

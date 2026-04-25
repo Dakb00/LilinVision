@@ -47,9 +47,29 @@ int main(int argc, char** argv) {
         }
     }
 
+    // Auto-detect Model paths
+    vms::ModelConfig model_config;
+    if (std::filesystem::exists("./yoloweights/peoplerpeople/people.cfg")) {
+        model_config.configPath = "./yoloweights/peoplerpeople/people.cfg";
+        model_config.weightsPath = "./yoloweights/peoplerpeople/people.weights";
+        model_config.namesPath = "./yoloweights/peoplerpeople/people.names";
+    } else if (std::filesystem::exists("/usr/share/vms-lite/models/people.cfg")) {
+        model_config.configPath = "/usr/share/vms-lite/models/people.cfg";
+        model_config.weightsPath = "/usr/share/vms-lite/models/people.weights";
+        model_config.namesPath = "/usr/share/vms-lite/models/people.names";
+    } else {
+        // Fallback for safety (though it might fail if files are missing)
+        model_config.configPath = "people.cfg";
+        model_config.weightsPath = "people.weights";
+        model_config.namesPath = "people.names";
+    }
+
     std::cout << "--- VMS Lite ---" << std::endl;
     std::cout << "[Config] Static assets: " << static_path << std::endl;
-    if (!use_mocks) std::cout << "[Config] Database:      " << db_path << std::endl;
+    if (!use_mocks) {
+        std::cout << "[Config] Database:      " << db_path << std::endl;
+        std::cout << "[Config] Model Config:  " << model_config.configPath << std::endl;
+    }
     
     if (use_mocks) std::cout << "[Mode] Running with MOCK adapters." << std::endl;
     else std::cout << "[Mode] Running with REAL adapters." << std::endl;
@@ -72,7 +92,7 @@ int main(int argc, char** argv) {
     }
     
     // 2. Initialize Stream Manager
-    auto stream_manager = std::make_shared<vms::StreamManager>(repository, nullptr);
+    auto stream_manager = std::make_shared<vms::StreamManager>(repository, model_config);
 
     // 3. Initialize Web Server
     vms::CrowRestServer web_server(repository, stream_manager, static_path);

@@ -18,7 +18,7 @@ public:
                   const std::string& weightsPath,
                   const std::string& namesPath) override;
 
-    std::vector<Detection> infer(const cv::Mat& frame) override;
+    std::vector<Detection> infer(std::shared_ptr<cv::Mat> frame) override;
     std::vector<std::string> getLabels() const override;
     void warmup() override;
     bool isReady() const override;

@@ -14,7 +14,8 @@ protected:
 
     void SetUp() override {
         mockRepo = std::make_shared<MockCameraRepository>();
-        manager = std::make_unique<StreamManager>(mockRepo, nullptr);
+        ModelConfig config; // Use default mock-friendly config
+        manager = std::make_unique<StreamManager>(mockRepo, config);
     }
 };
 

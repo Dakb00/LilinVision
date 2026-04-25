@@ -1,6 +1,8 @@
 #include "CrowRestServer.hpp"
 #include "crow_all.h"
 #include <iostream>
+#include <fstream>
+#include <sstream>
 
 namespace vms {
 
@@ -14,6 +16,12 @@ CrowRestServer::~CrowRestServer() {}
 
 void CrowRestServer::run(int port) {
     crow::SimpleApp app;
+    
+    // Clean static path (remove trailing slash)
+    std::string clean_path = m_staticPath;
+    if (!clean_path.empty() && clean_path.back() == '/') {
+        clean_path.pop_back();
+    }
     // ... (rest of API routes)
 
     // --- API: List all cameras ---
@@ -94,22 +102,74 @@ void CrowRestServer::run(int port) {
     });
 
     // --- Static Files (React GUI) ---
-    // Decision 5: Serve from configured static path
     CROW_ROUTE(app, "/")
-    ([this](const crow::request&, crow::response& res){
-        res.set_static_file_info(m_staticPath + "/index.html");
-        res.end();
+    ([clean_path](){
+        std::string full_path = clean_path + "/index.html";
+        std::ifstream file(full_path);
+        if (!file.is_open()) {
+            std::cerr << "[Web] ERROR: Could not open " << full_path << std::endl;
+            return crow::response(404, "Index file not found");
+        }
+        std::stringstream buffer;
+        buffer << file.rdbuf();
+        crow::response res(buffer.str());
+        res.set_header("Content-Type", "text/html");
+        return res;
     });
 
     // Catch-all for other static assets
-    CROW_ROUTE(app, "/assets/<path>")
-    ([this](const crow::request&, crow::response& res, std::string path){
-        res.set_static_file_info(m_staticPath + "/assets/" + path);
+    CROW_ROUTE(app, "/assets/<string>")
+    .methods(crow::HTTPMethod::GET)
+    ([clean_path](const crow::request&, crow::response& res, std::string path){
+        std::string full_path = clean_path + "/assets/" + path;
+        
+        std::ifstream file(full_path, std::ios::binary);
+        if (!file.is_open()) {
+            res.code = 404;
+            res.end();
+            return;
+        }
+
+        std::stringstream buffer;
+        buffer << file.rdbuf();
+        res.body = buffer.str();
+        
+        // Manual Content-Type mapping
+        if (full_path.ends_with(".js")) res.set_header("Content-Type", "application/javascript");
+        else if (full_path.ends_with(".css")) res.set_header("Content-Type", "text/css");
+        else if (full_path.ends_with(".svg")) res.set_header("Content-Type", "image/svg+xml");
+        else if (full_path.ends_with(".png")) res.set_header("Content-Type", "image/png");
+        else if (full_path.ends_with(".jpg") || full_path.ends_with(".jpeg")) res.set_header("Content-Type", "image/jpeg");
+        
         res.end();
     });
 
-    std::cout << "[Web] Starting server on port " << port << std::endl;
-    app.port(port).multithreaded().run();
+    // --- SPA Fallback ---
+    // Serve index.html for any unknown routes so React Router can handle them
+    CROW_CATCHALL_ROUTE(app)
+    ([clean_path](const crow::request& req, crow::response& res){
+        if (req.url.find("/api/") != std::string::npos) {
+            res.code = 404;
+            res.end();
+            return;
+        }
+        
+        std::string full_path = clean_path + "/index.html";
+        std::ifstream file(full_path);
+        if (file.is_open()) {
+            std::stringstream buffer;
+            buffer << file.rdbuf();
+            res.set_header("Content-Type", "text/html");
+            res.write(buffer.str());
+        } else {
+            res.code = 404;
+            res.write("Not Found");
+        }
+        res.end();
+    });
+
+    std::cout << "[Web] Starting server on port " << port << " (bound to 0.0.0.0)" << std::endl;
+    app.port(port).bindaddr("0.0.0.0").multithreaded().run();
 }
 
 } // namespace vms

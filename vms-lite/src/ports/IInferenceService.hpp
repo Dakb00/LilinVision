@@ -25,7 +25,7 @@ public:
                           const std::string& weightsPath,
                           const std::string& namesPath) = 0;
 
-    virtual std::vector<Detection> infer(const cv::Mat& frame) = 0;
+    virtual std::vector<Detection> infer(std::shared_ptr<cv::Mat> frame) = 0;
     virtual std::vector<std::string> getLabels() const = 0;
     virtual void warmup() = 0;
     virtual bool isReady() const = 0;

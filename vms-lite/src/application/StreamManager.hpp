@@ -15,13 +15,22 @@
 namespace vms {
 
 /**
+ * @brief Paths to the YOLO model files.
+ */
+struct ModelConfig {
+    std::string configPath;
+    std::string weightsPath;
+    std::string namesPath;
+};
+
+/**
  * @brief Manages the lifecycle of camera worker threads.
  */
 class StreamManager {
 public:
     StreamManager(
         std::shared_ptr<ICameraRepository> repository,
-        std::shared_ptr<IInferenceService> globalInference // May be null if using per-camera models
+        const ModelConfig& modelConfig
     );
     ~StreamManager();
 
@@ -36,6 +45,16 @@ public:
     void stopAll();
 
     /**
+     * @brief Start a specific camera thread.
+     */
+    void startCamera(int camera_id);
+
+    /**
+     * @brief Stop a specific camera thread.
+     */
+    void stopCamera(int camera_id);
+
+    /**
      * @brief Get the latest frame for a specific camera.
      */
     std::shared_ptr<cv::Mat> getLatestFrame(int camera_id);
@@ -47,7 +66,7 @@ private:
     void cameraWorkerLoop(int camera_id, std::stop_token stop_token);
 
     std::shared_ptr<ICameraRepository> m_repository;
-    std::shared_ptr<IInferenceService> m_globalInference;
+    ModelConfig m_modelConfig;
 
     // Map of CameraID -> Thread
     std::map<int, std::jthread> m_workers;

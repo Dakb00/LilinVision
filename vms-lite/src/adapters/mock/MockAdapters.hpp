@@ -40,6 +40,11 @@ public:
         return true;
     }
 
+    int cleanupOldDetections(int days) override {
+        std::cout << "[MockDB] Cleanup detections older than " << days << " days." << std::endl;
+        return 0;
+    }
+
     std::vector<DetectionEvent> getRecentDetections(int) override { return {}; }
     std::vector<DetectionEvent> getDetectionsByCamera(int, int) override { return {}; }
 };
@@ -78,7 +83,8 @@ public:
         return true;
     }
 
-    std::vector<Detection> infer(const cv::Mat&) override {
+    std::vector<Detection> infer(std::shared_ptr<cv::Mat> frame) override {
+        if (!frame || frame->empty()) return {};
         static int counter = 0;
         if (++counter % 20 == 0) { // Simulate a detection every ~2 seconds
             return {{1, "person", 0.95f, cv::Rect(10, 10, 100, 200)}};

@@ -6,7 +6,7 @@ VMS Lite uses a dynamic path resolution strategy to ensure the same binary works
 The backend (Crow) needs to know where the compiled React files are located. The `main.cpp` logic checks for paths in the following priority:
 
 1.  **Command Line Override:** `--gui <path>`
-2.  **Development Path:** `./visionguard/client/dist/` (Used when running from the project root).
+2.  **Development Path:** `./visionguard/dist/public/` (The default output of the React build script).
 3.  **Production Path:** `/usr/share/vms-lite/www/` (Standard path defined in the Master Architecture Guide).
 4.  **Fallback:** `./www/`
 

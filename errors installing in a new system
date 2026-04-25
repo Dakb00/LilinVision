@@ -1,0 +1,20 @@
+face@face-Dell-G15-5530:~/Documents$ sudo dpkg -i vms-lite-0.1.0-Linux.deb 
+Selecting previously unselected package vms-lite.
+(Reading database ... 202718 files and directories currently installed.)
+Preparing to unpack vms-lite-0.1.0-Linux.deb ...
+Unpacking vms-lite (0.1.0) ...
+dpkg: dependency problems prevent configuration of vms-lite:
+ vms-lite depends on libopencv-dev; however:
+  Package libopencv-dev is not installed.
+ vms-lite depends on libsqlite3-dev; however:
+  Package libsqlite3-dev is not installed.
+ vms-lite depends on darknet; however:
+  Package darknet is not installed.
+ vms-lite depends on darkhelp; however:
+  Package darkhelp is not installed.
+
+dpkg: error processing package vms-lite (--install):
+ dependency problems - leaving unconfigured
+Errors were encountered while processing:
+ vms-lite
+

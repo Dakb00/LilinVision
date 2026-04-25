@@ -9,8 +9,8 @@ namespace vms {
 
 StreamManager::StreamManager(
     std::shared_ptr<ICameraRepository> repository,
-    std::shared_ptr<IInferenceService> globalInference
-) : m_repository(repository), m_globalInference(globalInference) {}
+    const ModelConfig& modelConfig
+) : m_repository(repository), m_modelConfig(modelConfig) {}
 
 StreamManager::~StreamManager() {
     stopAll();
@@ -67,9 +67,9 @@ void StreamManager::cameraWorkerLoop(int camera_id, std::stop_token stop_token) 
     std::unique_ptr<IStreamSource> source = std::make_unique<OpenCVStreamAdapter>();
     std::unique_ptr<IInferenceService> inference = std::make_unique<DarkHelpInferenceAdapter>(0.7f);
 
-    inference->loadModel("/home/yolo/developl/LilinVision/yoloweights/peoplerpeople/people.cfg", 
-                        "/home/yolo/developl/LilinVision/yoloweights/peoplerpeople/people.weights", 
-                        "/home/yolo/developl/LilinVision/yoloweights/peoplerpeople/people.names");
+    inference->loadModel(m_modelConfig.configPath, 
+                        m_modelConfig.weightsPath, 
+                        m_modelConfig.namesPath);
 
     std::map<std::string, std::chrono::steady_clock::time_point> last_seen;
     const auto cooldown_period = std::chrono::seconds(10);
@@ -92,7 +92,7 @@ void StreamManager::cameraWorkerLoop(int camera_id, std::stop_token stop_token) 
         }
 
         // B. Run Inference
-        std::vector<Detection> detections = inference->infer(*frame);
+        std::vector<Detection> detections = inference->infer(frame);
 
         // --- DRAW BOUNDING BOXES (Decision 2) ---
         for (const auto& det : detections) {

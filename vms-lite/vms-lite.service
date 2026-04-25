@@ -1,0 +1,15 @@
+[Unit]
+Description=VMS Lite Backend Service
+After=network.target
+
+[Service]
+Type=simple
+User=vms-lite
+Group=vms-lite
+WorkingDirectory=/var/lib/vms-lite
+ExecStart=/usr/bin/vms-lite
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
