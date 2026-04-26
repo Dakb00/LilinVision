@@ -8,8 +8,9 @@ This index serves as a central guide to the LilinVision workspace. Core architec
 - **[vms-lite-WEB_GUI_ARCHITECTURE.md](vms-lite-WEB_GUI_ARCHITECTURE.md)**: Frontend-backend integration details.
 - **[vms-lite-ARCHITECTURE_ANALYSIS.md](vms-lite-ARCHITECTURE_ANALYSIS.md)**: Post-implementation verification.
 - **[vms-lite-IMPLEMENTATION_PLAN.md](vms-lite-IMPLEMENTATION_PLAN.md)**: roadmap and tracker.
-- **[vms-lite-PATH_RESOLUTION.md](vms-lite-PATH_RESOLUTION.md)**: Zero-config path strategy.
-- **[distribution-Compatibility_Guide.md](distribution-Compatibility_Guide.md)**: Global compatibility & distribution guide.
+- [vms-lite-PATH_RESOLUTION.md](vms-lite-PATH_RESOLUTION.md): Zero-config path strategy.
+- [distribution-Compatibility_Guide.md](distribution-Compatibility_Guide.md): Global compatibility & distribution guide.
+- [DEPENDENCY_LOGGING_FIX.md](DEPENDENCY_LOGGING_FIX.md): Packaging & dependency validation fix.
 
 ## 🧠 Core Vision Components (Submodules)
 *Original repo documentation restored to subfolders*

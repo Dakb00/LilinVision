@@ -35,6 +35,7 @@ Refer to [DarkHelp/README_DARKHELP.md](DarkHelp/README_DARKHELP.md) for detailed
 
 ### vms-lite
 Refer to [index/vms-lite-README.md](index/vms-lite-README.md) for detailed instructions.
+Latest updates include improved `.deb` packaging with proactive dependency validation and system diagnostics during installation.
 
 ---
 *Primary Entry Point: LilinVision/GEMINI.md*

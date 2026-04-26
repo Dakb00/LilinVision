@@ -121,10 +121,10 @@ install(FILES
 
 # Bundle darknet and darkhelp libraries if found manually
 if(DarkHelp_LIBRARY)
-    install(FILES ${DarkHelp_LIBRARY} DESTINATION lib)
+    install(FILES ${DarkHelp_LIBRARY} DESTINATION lib/vms-lite)
 endif()
 if(darknet_LIBRARY)
-    install(FILES ${darknet_LIBRARY} DESTINATION lib)
+    install(FILES ${darknet_LIBRARY} DESTINATION lib/vms-lite)
 endif()
 
 # --- CPack Configuration (.deb) ---
@@ -146,7 +146,7 @@ set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 
 # Debian control scripts
 set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA 
-    "${CMAKE_CURRENT_SOURCE_DIR}/packaging/postinst;${CMAKE_CURRENT_SOURCE_DIR}/packaging/prerm"
+    "${CMAKE_CURRENT_SOURCE_DIR}/packaging/postinst;${CMAKE_CURRENT_SOURCE_DIR}/packaging/prerm;${CMAKE_CURRENT_SOURCE_DIR}/packaging/postrm"
 )
 
 # Systemd unit file installation

@@ -6,6 +6,8 @@ set -e
 USER_NAME="vms-lite"
 GROUP_NAME="vms-lite"
 DATA_DIR="/var/lib/vms-lite"
+VMS_LIBDIR="/usr/lib/vms-lite"
+VMS_CONF="/etc/ld.so.conf.d/vms-lite.conf"
 
 case "$1" in
     configure)
@@ -42,11 +44,92 @@ case "$1" in
             usermod -a -G video "$USER_NAME"
         fi
 
+        # 5. Register private library directory
+        echo "Registering private library directory: $VMS_LIBDIR"
+        echo "$VMS_LIBDIR" > "$VMS_CONF"
+
         # Refresh shared library cache
         echo "Updating shared library cache..."
         ldconfig
 
-        # 5. Handle Systemd service
+        # 6. System & Hardware Diagnostics
+        echo "[vms-lite] Gathering system information..."
+        
+        # Virtualization/Environment
+        VIRT="Bare Metal / Physical Machine"
+        if [ -f /proc/version ] && grep -qi "microsoft" /proc/version; then
+            VIRT="WSL (Windows Subsystem for Linux)"
+        elif command -v systemd-detect-virt >/dev/null 2>&1; then
+            VIRT_TYPE=$(systemd-detect-virt || echo "none")
+            if [ "$VIRT_TYPE" != "none" ]; then
+                VIRT="Virtual Machine ($VIRT_TYPE)"
+            fi
+        fi
+        echo "  Environment: $VIRT"
+        
+        # CPU Info
+        if command -v lscpu >/dev/null 2>&1; then
+            CPU_MODEL=$(lscpu | grep "Model name" | cut -d':' -f2 | xargs || echo "Unknown")
+            CPU_CORES=$(lscpu | grep "^CPU(s):" | cut -d':' -f2 | xargs || echo "Unknown")
+            echo "  CPU: $CPU_MODEL ($CPU_CORES cores)"
+        fi
+        
+        # Memory Info
+        if [ -f /proc/meminfo ]; then
+            TOTAL_RAM=$(grep MemTotal /proc/meminfo | awk '{printf "%.2f GB", $2/1024/1024}')
+            echo "  Memory: $TOTAL_RAM"
+        fi
+
+        # GPU Info (NVIDIA check for Darknet)
+        if command -v nvidia-smi >/dev/null 2>&1; then
+            GPU_INFO=$(nvidia-smi --query-gpu=name --format=csv,noheader | head -n 1)
+            echo "  GPU: $GPU_INFO (NVIDIA Driver active)"
+        elif command -v lspci >/dev/null 2>&1; then
+            if lspci | grep -qi "nvidia"; then
+                echo "  GPU: NVIDIA hardware detected (driver might not be loaded)"
+            fi
+        fi
+
+        # 7. Proactive Dependency Validation
+        echo "[vms-lite] Validating installation and dependencies..."
+        DEPS_OK=true
+        
+        # Check binary
+        if [ -f "/usr/bin/vms-lite" ]; then
+            echo "[OK] vms-lite binary found at /usr/bin/vms-lite"
+        else
+            echo "[ERROR] vms-lite binary NOT found at /usr/bin/vms-lite"
+            DEPS_OK=false
+        fi
+
+        # Check bundled libraries and their dependencies
+        for lib in "libdarkhelp.so" "libdarknet.so"; do
+            lib_path="$VMS_LIBDIR/$lib"
+            if [ -f "$lib_path" ]; then
+                echo "[OK] Found $lib in private directory."
+                
+                # Check for missing system dependencies
+                MISSING_DEPS=$(LD_LIBRARY_PATH="$VMS_LIBDIR" ldd "$lib_path" | grep "not found" || true)
+                if [ -n "$MISSING_DEPS" ]; then
+                    echo "[WARNING] $lib has missing dependencies on this system:"
+                    echo "$MISSING_DEPS" | sed 's/^/    /'
+                    echo "Please ensure all required system libraries (OpenCV, OpenBLAS, etc.) are installed."
+                    echo "Recommended: sudo apt install libopencv-videoio4.x libopenblas0 libgomp1"
+                    DEPS_OK=false
+                fi
+            else
+                echo "[WARNING] $lib not found in $VMS_LIBDIR."
+                # Don't set DEPS_OK=false here as they might be system-installed
+            fi
+        done
+
+        if [ "$DEPS_OK" = true ]; then
+            echo "[SUCCESS] All critical system dependencies verified."
+        else
+            echo "[CAUTION] Some dependencies are missing or validation failed. The service might fail to start."
+        fi
+
+        # 8. Handle Systemd service
         echo "Reloading systemd daemon..."
         systemctl daemon-reload || true
 

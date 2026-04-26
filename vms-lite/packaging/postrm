@@ -1,0 +1,28 @@
+#!/bin/sh
+set -e
+
+# --- LilinVision vms-lite Post-Removal Script ---
+
+VMS_CONF="/etc/ld.so.conf.d/vms-lite.conf"
+
+case "$1" in
+    purge|remove)
+        if [ -f "$VMS_CONF" ]; then
+            echo "Removing $VMS_CONF..."
+            rm "$VMS_CONF"
+            
+            echo "Updating shared library cache..."
+            ldconfig
+        fi
+        ;;
+
+    upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+        ;;
+
+    *)
+        echo "postrm called with unknown argument \`$1'" >&2
+        exit 1
+        ;;
+esac
+
+exit 0

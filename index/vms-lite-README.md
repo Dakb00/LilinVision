@@ -60,6 +60,6 @@ This project is a lightweight Video Management System (VMS) built with C++17, fo
 - [x] Align visionguard frontend to C++ backend.
 - [x] Coordinate scaling fix and dynamic model path resolution.
 - [x] Systemd and CPack integration.
-- [ ] Final Deployment Testing & .deb validation.
+- [x] Final Deployment Testing & .deb validation (including proactive dependency validation).
 
 Refer to `vms-lite/IMPLEMENTATION_PLAN.md` for a granular task list.
