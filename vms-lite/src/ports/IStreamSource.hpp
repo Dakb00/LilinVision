@@ -34,6 +34,12 @@ public:
      * @brief Check if the video source is currently open and producing frames.
      */
     virtual bool isOpened() const = 0;
+
+    /**
+     * @brief Get the FPS of the source (if available).
+     * @return The FPS value, or 0.0 if unknown.
+     */
+    virtual double getFPS() const = 0;
 };
 
 } // namespace vms

@@ -33,7 +33,8 @@ int main(int argc, char** argv) {
         };
 
         for (const auto& path : potential_paths) {
-            if (std::filesystem::exists(path + "/index.html")) {
+            std::error_code ec;
+            if (std::filesystem::exists(path + "/index.html", ec) && !ec) {
                 static_path = path;
                 break;
             }
@@ -44,7 +45,8 @@ int main(int argc, char** argv) {
 
     // Auto-detect Database path
     std::string db_path = "history.db";
-    bool system_db_possible = std::filesystem::exists("/var/lib/vms-lite/");
+    std::error_code ec_db;
+    bool system_db_possible = std::filesystem::exists("/var/lib/vms-lite/", ec_db) && !ec_db;
     
     if (!use_mocks && system_db_possible) {
         std::string sys_path = "/var/lib/vms-lite/history.db";
@@ -67,7 +69,8 @@ int main(int argc, char** argv) {
         std::string cfg = root + "/yoloweights/peoplerpeople/people.cfg";
         if (root == "/usr/share/vms-lite/models") cfg = root + "/people.cfg";
 
-        if (std::filesystem::exists(cfg)) {
+        std::error_code ec_cfg;
+        if (std::filesystem::exists(cfg, ec_cfg) && !ec_cfg) {
             if (root == "/usr/share/vms-lite/models") {
                 model_config.configPath = root + "/people.cfg";
                 model_config.weightsPath = root + "/people.weights";

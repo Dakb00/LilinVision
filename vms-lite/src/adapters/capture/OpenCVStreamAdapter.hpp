@@ -27,6 +27,7 @@ public:
 
     void close() override;
     bool isOpened() const override;
+    double getFPS() const override;
 
 private:
     cv::VideoCapture m_cap;

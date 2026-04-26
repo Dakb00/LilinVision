@@ -136,6 +136,83 @@ void CrowRestServer::run(int port) {
         return crow::json::wvalue(std::move(det_list));
     });
 
+    // --- API: List files in a directory ---
+    CROW_ROUTE(app, "/api/v1/files")
+    ([this](const crow::request& req){
+        std::string path = req.url_params.get("path") ? req.url_params.get("path") : "/";
+        
+        crow::json::wvalue x;
+        std::vector<crow::json::wvalue> file_list;
+        
+        try {
+            std::error_code ec;
+            // Basic security: if path is empty or doesn't exist, use root
+            if (path.empty() || !std::filesystem::exists(path, ec) || ec) {
+                path = "/";
+            }
+
+            std::filesystem::path p(path);
+            
+            // Add parent directory if not at root
+            if (p.has_parent_path() && p != "/") {
+                crow::json::wvalue parent;
+                parent["name"] = "..";
+                parent["path"] = p.parent_path().string();
+                parent["is_directory"] = true;
+                file_list.push_back(std::move(parent));
+            }
+
+            // Use error_code version to avoid exceptions on permission denied
+            for (const auto& entry : std::filesystem::directory_iterator(path, ec)) {
+                if (ec) {
+                    // If we hit a permission error, we'll return what we have so far
+                    // but we can also log it.
+                    std::cerr << "[Web] Permission denied or error reading directory " << path << ": " << ec.message() << std::endl;
+                    break;
+                }
+
+                try {
+                    crow::json::wvalue f;
+                    f["name"] = entry.path().filename().string();
+                    f["path"] = entry.path().string();
+                    f["is_directory"] = entry.is_directory(ec);
+                    if (ec) { ec.clear(); continue; } // Skip entries we can't query
+                    
+                    if (entry.is_directory()) {
+                        file_list.push_back(std::move(f));
+                    } else {
+                        std::error_code ext_ec;
+                        if (entry.is_regular_file(ext_ec)) {
+                            std::string ext = entry.path().extension().string();
+                            std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+                            if (ext == ".mp4" || ext == ".avi" || ext == ".mkv" || ext == ".mov" || ext == ".h264" || ext == ".h265") {
+                                file_list.push_back(std::move(f));
+                            }
+                        }
+                    }
+                } catch (...) { continue; }
+            }
+            
+            x = std::move(file_list);
+            
+            // If the list is empty and we had an error, we can add a hint
+            if (x.size() == 0 && ec) {
+                crow::json::wvalue err;
+                err["name"] = "Error: Permission Denied";
+                err["path"] = path;
+                err["is_directory"] = false;
+                x = std::vector<crow::json::wvalue>{std::move(err)};
+            }
+            
+            return crow::response(x);
+        } catch (const std::exception& e) {
+            std::cerr << "[Web] Critical file browser error: " << e.what() << std::endl;
+            // Always return a JSON array, even if empty, to prevent frontend parse errors
+            x = std::move(file_list);
+            return crow::response(x);
+        }
+    });
+
     // --- MJPEG Stream Endpoint (Decision 1 & 2) ---
     CROW_ROUTE(app, "/api/v1/stream/<int>")
     ([this](const crow::request&, crow::response& res, int id){
@@ -158,6 +235,17 @@ void CrowRestServer::run(int port) {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
         res.end();
+    });
+
+    // --- WebSockets ---
+    CROW_WEBSOCKET_ROUTE(app, "/ws/events")
+    .onopen([this](crow::websocket::connection& conn){
+        std::lock_guard<std::mutex> lock(m_usersMutex);
+        m_users.insert(&conn);
+    })
+    .onclose([this](crow::websocket::connection& conn, const std::string& /*reason*/){
+        std::lock_guard<std::mutex> lock(m_usersMutex);
+        m_users.erase(&conn);
     });
 
     // --- Static Files (React GUI) ---
@@ -190,8 +278,9 @@ void CrowRestServer::run(int port) {
 
         std::string full_path = clean_path + "/" + path;
         
+        std::error_code ec;
         // If it's a directory or doesn't exist, Crow will continue to Catchall/SPA fallback
-        if (!std::filesystem::exists(full_path) || std::filesystem::is_directory(full_path)) {
+        if (!std::filesystem::exists(full_path, ec) || ec || std::filesystem::is_directory(full_path, ec)) {
             res.code = 404;
             res.end();
             return;
@@ -241,17 +330,6 @@ void CrowRestServer::run(int port) {
             res.write("Not Found");
         }
         res.end();
-    });
-
-    // --- WebSockets ---
-    CROW_WEBSOCKET_ROUTE(app, "/ws/events")
-    .onopen([this](crow::websocket::connection& conn){
-        std::lock_guard<std::mutex> lock(m_usersMutex);
-        m_users.insert(&conn);
-    })
-    .onclose([this](crow::websocket::connection& conn, const std::string& /*reason*/){
-        std::lock_guard<std::mutex> lock(m_usersMutex);
-        m_users.erase(&conn);
     });
 
     // --- Register Detection Callback ---

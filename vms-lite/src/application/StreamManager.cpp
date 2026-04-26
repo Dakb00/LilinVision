@@ -82,6 +82,8 @@ void StreamManager::cameraWorkerLoop(int camera_id, std::stop_token stop_token) 
     const auto retry_delay = std::chrono::seconds(5);
 
     while (!stop_token.stop_requested()) {
+        auto loop_start = std::chrono::steady_clock::now();
+
         if (!source->isOpened()) {
             m_repository->updateCameraStatus(camera_id, "Disconnected");
             if (!source->open(camera.rtsp_url)) {
@@ -100,7 +102,7 @@ void StreamManager::cameraWorkerLoop(int camera_id, std::stop_token stop_token) 
         // B. Run Inference
         std::vector<Detection> detections = inference->infer(frame);
 
-        // --- DRAW BOUNDING BOXES (Decision 2) ---
+        // ... DRAW BOUNDING BOXES ...
         for (const auto& det : detections) {
             cv::rectangle(*frame, det.bounding_box, cv::Scalar(0, 255, 0), 2);
             std::string label_text = det.label + " " + std::to_string((int)(det.confidence * 100)) + "%";
@@ -142,7 +144,19 @@ void StreamManager::cameraWorkerLoop(int camera_id, std::stop_token stop_token) 
             }
         }
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        // --- FPS Throttling for Files ---
+        // If it's a file, we need to manually throttle to the file's FPS.
+        // If it's RTSP, source->grabNextFrame() typically blocks until next frame.
+        double fps = source->getFPS();
+        if (fps > 0 && !camera.rtsp_url.starts_with("rtsp://")) {
+            auto target_duration = std::chrono::microseconds(static_cast<int>(1000000.0 / fps));
+            auto elapsed = std::chrono::steady_clock::now() - loop_start;
+            if (elapsed < target_duration) {
+                std::this_thread::sleep_for(target_duration - elapsed);
+            }
+        } else {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
     }
 
     source->close();

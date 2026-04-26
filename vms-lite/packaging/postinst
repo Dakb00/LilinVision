@@ -44,7 +44,15 @@ case "$1" in
             usermod -a -G video "$USER_NAME"
         fi
 
-        # 5. Register private library directory
+        # 5. Add vms-lite to the real user's group so it can browse their home directory
+        REAL_USER="${SUDO_USER:-$(whoami)}"
+        if [ "$REAL_USER" != "root" ] && getent passwd "$REAL_USER" >/dev/null; then
+            REAL_GROUP=$(id -gn "$REAL_USER")
+            echo "Adding $USER_NAME to group $REAL_GROUP (for user $REAL_USER)..."
+            usermod -a -G "$REAL_GROUP" "$USER_NAME"
+        fi
+
+        # 6. Register private library directory
         echo "Registering private library directory: $VMS_LIBDIR"
         echo "$VMS_LIBDIR" > "$VMS_CONF"
 
