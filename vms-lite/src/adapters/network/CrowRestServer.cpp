@@ -10,7 +10,9 @@ CrowRestServer::CrowRestServer(
     std::shared_ptr<ICameraRepository> repository,
     std::shared_ptr<StreamManager> stream_manager,
     const std::string& static_path
-) : m_repository(repository), m_streamManager(stream_manager), m_staticPath(static_path) {}
+) : m_repository(repository), m_streamManager(stream_manager), m_staticPath(static_path) {
+    m_startTime = std::chrono::steady_clock::now();
+}
 
 CrowRestServer::~CrowRestServer() {}
 
@@ -55,7 +57,64 @@ void CrowRestServer::run(int port) {
         cam.is_enabled = true;
         
         if (m_repository->addCamera(cam)) {
+            // Restart manager to pick up new camera
+            m_streamManager->startAll();
             return crow::response(201);
+        }
+        return crow::response(500);
+    });
+
+    // --- API: Delete a camera ---
+    CROW_ROUTE(app, "/api/v1/cameras/<int>").methods(crow::HTTPMethod::DELETE)
+    ([this](int id){
+        m_streamManager->stopCamera(id);
+        if (m_repository->removeCamera(id)) {
+            return crow::response(200);
+        }
+        return crow::response(500);
+    });
+
+    // --- API: System Status ---
+    CROW_ROUTE(app, "/api/v1/status")
+    ([this](){
+        auto now = std::chrono::steady_clock::now();
+        auto uptime = std::chrono::duration_cast<std::chrono::seconds>(now - m_startTime).count();
+        
+        crow::json::wvalue x;
+        x["uptime_seconds"] = uptime;
+        x["camera_count"] = (int)m_repository->getAllCameras().size();
+        x["detections_today"] = m_repository->getTotalDetectionsToday();
+        return x;
+    });
+
+    // --- API: Get Snapshot ---
+    CROW_ROUTE(app, "/api/v1/detections/<int>/snapshot")
+    ([this](int id){
+        auto det = m_repository->getDetectionById(id);
+        if (!det || det->image_data.empty()) {
+            return crow::response(404);
+        }
+        crow::response res;
+        res.set_header("Content-Type", "image/jpeg");
+        res.body = std::string(det->image_data.begin(), det->image_data.end());
+        return res;
+    });
+
+    // --- API: Settings (Webhook) ---
+    CROW_ROUTE(app, "/api/v1/settings/webhook_url")
+    ([this](){
+        crow::json::wvalue x;
+        x["url"] = m_repository->getSetting("webhook_url", "");
+        return x;
+    });
+
+    CROW_ROUTE(app, "/api/v1/settings/webhook_url").methods(crow::HTTPMethod::POST)
+    ([this](const crow::request& req){
+        auto body = crow::json::load(req.body);
+        if (!body || !body.has("url")) return crow::response(400);
+        
+        if (m_repository->setSetting("webhook_url", body["url"].s())) {
+            return crow::response(200);
         }
         return crow::response(500);
     });
@@ -117,12 +176,27 @@ void CrowRestServer::run(int port) {
         return res;
     });
 
-    // Catch-all for other static assets
-    CROW_ROUTE(app, "/assets/<string>")
+    // --- Static Files (Generic Handler) ---
+    // This replaces the old specific /assets/ route to be more flexible
+    CROW_ROUTE(app, "/<path>")
     .methods(crow::HTTPMethod::GET)
-    ([clean_path](const crow::request&, crow::response& res, std::string path){
-        std::string full_path = clean_path + "/assets/" + path;
+    ([clean_path](const crow::request& req, crow::response& res, std::string path){
+        // Prevent path traversal
+        if (path.find("..") != std::string::npos) {
+            res.code = 400;
+            res.end();
+            return;
+        }
+
+        std::string full_path = clean_path + "/" + path;
         
+        // If it's a directory or doesn't exist, Crow will continue to Catchall/SPA fallback
+        if (!std::filesystem::exists(full_path) || std::filesystem::is_directory(full_path)) {
+            res.code = 404;
+            res.end();
+            return;
+        }
+
         std::ifstream file(full_path, std::ios::binary);
         if (!file.is_open()) {
             res.code = 404;
@@ -134,11 +208,12 @@ void CrowRestServer::run(int port) {
         buffer << file.rdbuf();
         res.body = buffer.str();
         
-        // Manual Content-Type mapping
+        // Content-Type mapping
         if (full_path.ends_with(".js")) res.set_header("Content-Type", "application/javascript");
         else if (full_path.ends_with(".css")) res.set_header("Content-Type", "text/css");
         else if (full_path.ends_with(".svg")) res.set_header("Content-Type", "image/svg+xml");
         else if (full_path.ends_with(".png")) res.set_header("Content-Type", "image/png");
+        else if (full_path.ends_with(".ico")) res.set_header("Content-Type", "image/x-icon");
         else if (full_path.ends_with(".jpg") || full_path.ends_with(".jpeg")) res.set_header("Content-Type", "image/jpeg");
         
         res.end();
@@ -166,6 +241,36 @@ void CrowRestServer::run(int port) {
             res.write("Not Found");
         }
         res.end();
+    });
+
+    // --- WebSockets ---
+    CROW_WEBSOCKET_ROUTE(app, "/ws/events")
+    .onopen([this](crow::websocket::connection& conn){
+        std::lock_guard<std::mutex> lock(m_usersMutex);
+        m_users.insert(&conn);
+    })
+    .onclose([this](crow::websocket::connection& conn, const std::string& /*reason*/){
+        std::lock_guard<std::mutex> lock(m_usersMutex);
+        m_users.erase(&conn);
+    });
+
+    // --- Register Detection Callback ---
+    m_streamManager->setDetectionCallback([this](const DetectionEvent& event, const std::string& webhook_response){
+        crow::json::wvalue x;
+        x["type"] = "detection";
+        x["id"] = event.id;
+        x["camera_id"] = event.camera_id;
+        x["timestamp"] = event.timestamp;
+        x["label"] = event.label;
+        x["confidence"] = event.confidence;
+        x["webhook_response"] = webhook_response;
+
+        std::string msg = x.dump();
+        
+        std::lock_guard<std::mutex> lock(m_usersMutex);
+        for (auto user : m_users) {
+            user->send_text(msg);
+        }
     });
 
     std::cout << "[Web] Starting server on port " << port << " (bound to 0.0.0.0)" << std::endl;

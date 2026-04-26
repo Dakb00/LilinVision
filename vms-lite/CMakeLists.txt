@@ -109,8 +109,10 @@ target_link_libraries(${PROJECT_NAME}
 
 # --- Install (FHS) ---
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)
-# Add static GUI assets
-install(DIRECTORY gui/ DESTINATION share/vms-lite/www)
+
+# Add static GUI assets from the new LilinVision-Web build directory
+install(DIRECTORY ../LilinVision-Web/dist/ DESTINATION share/vms-lite/www)
+
 # Add models (using the correct source path)
 install(FILES 
     ../yoloweights/peoplerpeople/people.cfg 

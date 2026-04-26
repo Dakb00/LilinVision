@@ -47,6 +47,14 @@ public:
 
     std::vector<DetectionEvent> getRecentDetections(int) override { return {}; }
     std::vector<DetectionEvent> getDetectionsByCamera(int, int) override { return {}; }
+    std::optional<DetectionEvent> getDetectionById(int) override { return std::nullopt; }
+    int getTotalDetectionsToday() override { return 42; }
+
+    bool setSetting(const std::string&, const std::string&) override { return true; }
+    std::string getSetting(const std::string& key, const std::string& default_value) override {
+        if (key == "webhook_url") return "http://mock-webhook.local";
+        return default_value;
+    }
 };
 
 /**

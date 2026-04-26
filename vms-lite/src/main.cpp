@@ -25,40 +25,64 @@ int main(int argc, char** argv) {
 
     // Auto-detect static path if not provided
     if (static_path.empty()) {
-        // 1. Try local development path
-        if (std::filesystem::exists("./visionguard/client/dist/index.html")) {
-            static_path = "./visionguard/client/dist";
-        } 
-        // 2. Try standard installation path (Per Master Architecture Guide)
-        else if (std::filesystem::exists("/usr/share/vms-lite/www/index.html")) {
-            static_path = "/usr/share/vms-lite/www";
+        std::vector<std::string> potential_paths = {
+            "./LilinVision-Web/dist",                // Root
+            "../LilinVision-Web/dist",               // vms-lite/
+            "../../LilinVision-Web/dist",            // vms-lite/build/
+            "/usr/share/vms-lite/www"                // Production
+        };
+
+        for (const auto& path : potential_paths) {
+            if (std::filesystem::exists(path + "/index.html")) {
+                static_path = path;
+                break;
+            }
         }
-        // 3. Last resort fallback
-        else {
-            static_path = "./www";
-        }
+        
+        if (static_path.empty()) static_path = "./www";
     }
 
-    // Auto-detect Database path (Per Master Architecture Guide)
-    std::string db_path = "history.db"; // Default for local dev
-    if (!use_mocks) {
-        if (std::filesystem::exists("/var/lib/vms-lite/")) {
-            db_path = "/var/lib/vms-lite/history.db";
+    // Auto-detect Database path
+    std::string db_path = "history.db";
+    bool system_db_possible = std::filesystem::exists("/var/lib/vms-lite/");
+    
+    if (!use_mocks && system_db_possible) {
+        std::string sys_path = "/var/lib/vms-lite/history.db";
+        // Check if we can actually write to this directory
+        std::error_code ec;
+        auto status = std::filesystem::status("/var/lib/vms-lite/", ec);
+        if (!ec && (status.permissions() & std::filesystem::perms::owner_write) != std::filesystem::perms::none) {
+            db_path = sys_path;
+        } else {
+            std::cout << "[Config] System DB path not writable, using local history.db" << std::endl;
         }
     }
 
     // Auto-detect Model paths
     vms::ModelConfig model_config;
-    if (std::filesystem::exists("./yoloweights/peoplerpeople/people.cfg")) {
-        model_config.configPath = "./yoloweights/peoplerpeople/people.cfg";
-        model_config.weightsPath = "./yoloweights/peoplerpeople/people.weights";
-        model_config.namesPath = "./yoloweights/peoplerpeople/people.names";
-    } else if (std::filesystem::exists("/usr/share/vms-lite/models/people.cfg")) {
-        model_config.configPath = "/usr/share/vms-lite/models/people.cfg";
-        model_config.weightsPath = "/usr/share/vms-lite/models/people.weights";
-        model_config.namesPath = "/usr/share/vms-lite/models/people.names";
-    } else {
-        // Fallback for safety (though it might fail if files are missing)
+    std::vector<std::string> model_roots = {".", "..", "../..", "/usr/share/vms-lite/models"};
+    bool model_found = false;
+
+    for (const auto& root : model_roots) {
+        std::string cfg = root + "/yoloweights/peoplerpeople/people.cfg";
+        if (root == "/usr/share/vms-lite/models") cfg = root + "/people.cfg";
+
+        if (std::filesystem::exists(cfg)) {
+            if (root == "/usr/share/vms-lite/models") {
+                model_config.configPath = root + "/people.cfg";
+                model_config.weightsPath = root + "/people.weights";
+                model_config.namesPath = root + "/people.names";
+            } else {
+                model_config.configPath = root + "/yoloweights/peoplerpeople/people.cfg";
+                model_config.weightsPath = root + "/yoloweights/peoplerpeople/people.weights";
+                model_config.namesPath = root + "/yoloweights/peoplerpeople/people.names";
+            }
+            model_found = true;
+            break;
+        }
+    }
+
+    if (!model_found) {
         model_config.configPath = "people.cfg";
         model_config.weightsPath = "people.weights";
         model_config.namesPath = "people.names";

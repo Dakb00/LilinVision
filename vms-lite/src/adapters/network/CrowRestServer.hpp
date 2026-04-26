@@ -2,8 +2,12 @@
 
 #include <memory>
 #include <string>
+#include <set>
+#include <mutex>
+#include <chrono>
 #include <ports/ICameraRepository.hpp>
 #include <application/StreamManager.hpp>
+#include "crow_all.h"
 
 namespace vms {
 
@@ -28,6 +32,10 @@ private:
     std::shared_ptr<ICameraRepository> m_repository;
     std::shared_ptr<StreamManager> m_streamManager;
     std::string m_staticPath;
+
+    std::set<crow::websocket::connection*> m_users;
+    std::mutex m_usersMutex;
+    std::chrono::steady_clock::time_point m_startTime;
 };
 
 } // namespace vms

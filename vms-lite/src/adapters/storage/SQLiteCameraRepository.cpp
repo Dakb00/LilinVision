@@ -40,9 +40,15 @@ void SQLiteCameraRepository::initializeSchema() {
         "image_data BLOB,"
         "FOREIGN KEY(camera_id) REFERENCES cameras(id));";
 
+    const char* sql_settings =
+        "CREATE TABLE IF NOT EXISTS settings ("
+        "key TEXT PRIMARY KEY,"
+        "value TEXT NOT NULL);";
+
     char* errMsg = nullptr;
     sqlite3_exec(m_db, sql_cameras, nullptr, nullptr, &errMsg);
     sqlite3_exec(m_db, sql_detections, nullptr, nullptr, &errMsg);
+    sqlite3_exec(m_db, sql_settings, nullptr, nullptr, &errMsg);
     if (errMsg) {
         std::cerr << "SQL error: " << errMsg << std::endl;
         sqlite3_free(errMsg);
@@ -228,6 +234,81 @@ std::vector<DetectionEvent> SQLiteCameraRepository::getDetectionsByCamera(int ca
     }
     sqlite3_finalize(stmt);
     return events;
+}
+
+std::optional<DetectionEvent> SQLiteCameraRepository::getDetectionById(int id) {
+    std::lock_guard<std::mutex> lock(m_dbMutex);
+    const char* sql = "SELECT id, camera_id, timestamp, label, confidence, image_data FROM detections WHERE id = ?;";
+    sqlite3_stmt* stmt;
+    std::optional<DetectionEvent> result;
+
+    if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) == SQLITE_OK) {
+        sqlite3_bind_int(stmt, 1, id);
+        if (sqlite3_step(stmt) == SQLITE_ROW) {
+            DetectionEvent ev;
+            ev.id = sqlite3_column_int(stmt, 0);
+            ev.camera_id = sqlite3_column_int(stmt, 1);
+            ev.timestamp = sqlite3_column_int64(stmt, 2);
+            ev.label = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
+            ev.confidence = static_cast<float>(sqlite3_column_double(stmt, 4));
+            
+            const void* blob = sqlite3_column_blob(stmt, 5);
+            int size = sqlite3_column_bytes(stmt, 5);
+            if (blob && size > 0) {
+                const unsigned char* p = static_cast<const unsigned char*>(blob);
+                ev.image_data.assign(p, p + size);
+            }
+            result = ev;
+        }
+    }
+    sqlite3_finalize(stmt);
+    return result;
+}
+
+int SQLiteCameraRepository::getTotalDetectionsToday() {
+    std::lock_guard<std::mutex> lock(m_dbMutex);
+    // SQLite date functions work with unix timestamps if we use 'unixepoch'
+    const char* sql = "SELECT COUNT(*) FROM detections WHERE date(timestamp, 'unixepoch', 'localtime') = date('now', 'localtime');";
+    sqlite3_stmt* stmt;
+    int count = 0;
+
+    if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) == SQLITE_OK) {
+        if (sqlite3_step(stmt) == SQLITE_ROW) {
+            count = sqlite3_column_int(stmt, 0);
+        }
+    }
+    sqlite3_finalize(stmt);
+    return count;
+}
+
+bool SQLiteCameraRepository::setSetting(const std::string& key, const std::string& value) {
+    std::lock_guard<std::mutex> lock(m_dbMutex);
+    const char* sql = "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?);";
+    sqlite3_stmt* stmt;
+    bool success = false;
+    if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) == SQLITE_OK) {
+        sqlite3_bind_text(stmt, 1, key.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(stmt, 2, value.c_str(), -1, SQLITE_TRANSIENT);
+        if (sqlite3_step(stmt) == SQLITE_DONE) success = true;
+    }
+    sqlite3_finalize(stmt);
+    return success;
+}
+
+std::string SQLiteCameraRepository::getSetting(const std::string& key, const std::string& default_value) {
+    std::lock_guard<std::mutex> lock(m_dbMutex);
+    const char* sql = "SELECT value FROM settings WHERE key = ?;";
+    sqlite3_stmt* stmt;
+    std::string value = default_value;
+
+    if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) == SQLITE_OK) {
+        sqlite3_bind_text(stmt, 1, key.c_str(), -1, SQLITE_TRANSIENT);
+        if (sqlite3_step(stmt) == SQLITE_ROW) {
+            value = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+        }
+    }
+    sqlite3_finalize(stmt);
+    return value;
 }
 
 } // namespace vms

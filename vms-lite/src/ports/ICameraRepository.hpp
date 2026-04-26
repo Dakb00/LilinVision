@@ -24,11 +24,17 @@ public:
     virtual bool saveDetection(const DetectionEvent& event) = 0;
     virtual std::vector<DetectionEvent> getRecentDetections(int limit = 50) = 0;
     virtual std::vector<DetectionEvent> getDetectionsByCamera(int camera_id, int limit = 50) = 0;
+    virtual std::optional<DetectionEvent> getDetectionById(int id) = 0;
+    virtual int getTotalDetectionsToday() = 0;
     
     /**
      * @brief Circular buffer logic: Delete detections older than X days.
      */
     virtual int cleanupOldDetections(int days) = 0;
+
+    // --- Settings ---
+    virtual bool setSetting(const std::string& key, const std::string& value) = 0;
+    virtual std::string getSetting(const std::string& key, const std::string& default_value = "") = 0;
 };
 
 } // namespace vms

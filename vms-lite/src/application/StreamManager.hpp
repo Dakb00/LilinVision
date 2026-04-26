@@ -11,6 +11,8 @@
 #include <ports/IStreamSource.hpp>
 #include <ports/IInferenceService.hpp>
 #include <ports/ICameraRepository.hpp>
+#include <application/WebhookService.hpp>
+#include <functional>
 
 namespace vms {
 
@@ -59,6 +61,11 @@ public:
      */
     std::shared_ptr<cv::Mat> getLatestFrame(int camera_id);
 
+    /**
+     * @brief Register a callback for when a detection occurs.
+     */
+    void setDetectionCallback(std::function<void(const DetectionEvent&, const std::string&)> cb);
+
 private:
     /**
      * @brief The core loop for a single camera.
@@ -67,6 +74,8 @@ private:
 
     std::shared_ptr<ICameraRepository> m_repository;
     ModelConfig m_modelConfig;
+    std::unique_ptr<WebhookService> m_webhookService;
+    std::function<void(const DetectionEvent&, const std::string&)> m_onDetection;
 
     // Map of CameraID -> Thread
     std::map<int, std::jthread> m_workers;

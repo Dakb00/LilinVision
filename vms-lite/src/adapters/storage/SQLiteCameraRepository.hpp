@@ -26,7 +26,13 @@ public:
     bool saveDetection(const DetectionEvent& event) override;
     std::vector<DetectionEvent> getRecentDetections(int limit = 50) override;
     std::vector<DetectionEvent> getDetectionsByCamera(int camera_id, int limit = 50) override;
+    std::optional<DetectionEvent> getDetectionById(int id) override;
+    int getTotalDetectionsToday() override;
     int cleanupOldDetections(int days) override;
+
+    // Settings
+    bool setSetting(const std::string& key, const std::string& value) override;
+    std::string getSetting(const std::string& key, const std::string& default_value = "") override;
 
 private:
     void initializeSchema();

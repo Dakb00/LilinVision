@@ -10,7 +10,9 @@ namespace vms {
 StreamManager::StreamManager(
     std::shared_ptr<ICameraRepository> repository,
     const ModelConfig& modelConfig
-) : m_repository(repository), m_modelConfig(modelConfig) {}
+) : m_repository(repository), m_modelConfig(modelConfig) {
+    m_webhookService = std::make_unique<WebhookService>(m_repository);
+}
 
 StreamManager::~StreamManager() {
     stopAll();
@@ -55,6 +57,10 @@ std::shared_ptr<cv::Mat> StreamManager::getLatestFrame(int camera_id) {
         return m_latestFrames[camera_id];
     }
     return nullptr;
+}
+
+void StreamManager::setDetectionCallback(std::function<void(const DetectionEvent&, const std::string&)> cb) {
+    m_onDetection = cb;
 }
 
 void StreamManager::cameraWorkerLoop(int camera_id, std::stop_token stop_token) {
@@ -124,6 +130,14 @@ void StreamManager::cameraWorkerLoop(int camera_id, std::stop_token stop_token) 
                 cv::imencode(".jpg", *frame, event.image_data);
                 
                 m_repository->saveDetection(event);
+                
+                // --- WEBHOOK & WEBSOCKET ---
+                std::string webhook_response = m_webhookService->sendDetection(event);
+                
+                if (m_onDetection) {
+                    m_onDetection(event, webhook_response);
+                }
+                
                 last_seen[det.label] = now;
             }
         }
