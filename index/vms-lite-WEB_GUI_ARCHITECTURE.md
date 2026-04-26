@@ -1,6 +1,6 @@
 # VMS Lite Web GUI Architecture
 
-This document explains how the VMS Lite backend serves the React-based VisionGuard frontend, including the recent architectural changes made to ensure reliable deployment and "Zero-Config" operation.
+This document explains how the VMS Lite backend serves the React-based LilinVision-Web frontend, including the recent architectural changes made to ensure reliable deployment and "Zero-Config" operation.
 
 ## 1. Recent Changes Summary
 
@@ -8,7 +8,7 @@ To achieve a production-ready state, the following critical updates were impleme
 
 - **Manual Asset Handling:** Switched from Crow's default `set_static_file_info` to a manual binary stream approach. This was necessary to ensure precise control over MIME types (e.g., ensuring `.js` is served as `application/javascript`), preventing browsers from blocking script execution.
 - **SPA Fallback (Catch-All):** Added a `CROW_CATCHALL_ROUTE` that serves `index.html` for any unknown URL. This is mandatory for React applications using client-side routing (like `wouter` or `react-router`), allowing users to refresh the page on deep links without getting a 404.
-- **Automated Frontend Integration:** Established a pipeline to build the `visionguard` React project and sync its `dist` output into the `vms-lite/gui` directory for inclusion in the Debian package.
+- **Automated Frontend Integration:** Established a pipeline to build the `LilinVision-Web` React project and sync its `dist` output into the `vms-lite/gui` directory for inclusion in the Debian package.
 - **Port Conflict Resolution:** Identified and resolved a conflict with Port 5000 (previously used by Frigate).
 - **Security hardening:** Transitioned the service from `root` to a dedicated `vms-lite` system user with restricted permissions.
 
@@ -16,7 +16,7 @@ To achieve a production-ready state, the following critical updates were impleme
 
 The application uses a multi-stage discovery logic in `src/main.cpp` to find the web assets, allowing the same binary to run in development and production:
 
-1.  **Local Dev:** Checks for `./visionguard/client/dist/index.html`.
+1.  **Local Dev:** Checks for `./LilinVision-Web/dist/index.html`.
 2.  **System Install:** Checks for `/usr/share/vms-lite/www/index.html` (the standard FHS path).
 3.  **Fallback:** Defaults to a local `./www` folder.
 

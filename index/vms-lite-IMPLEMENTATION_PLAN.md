@@ -17,6 +17,7 @@ This document tracks the progress of the VMS Lite project, following Clean Archi
 - [x] **Implement Application Use Cases**
   - [x] `StreamManager`: Orchestrates threads (One Thread per Camera).
   - [x] `DetectionProcessor`: Logic for handling AI results and saving to DB.
+  - [x] `WebhookService`: Outbound JSON notifications for detections.
 - [x] **Quality Assurance (Foundation)**
   - [x] Mock Adapters for verification without dependencies.
   - [x] GoogleTest environment set up.
@@ -47,9 +48,9 @@ This document tracks the progress of the VMS Lite project, following Clean Archi
   - [x] Implement MJPEG streaming endpoint (`/api/v1/stream/{id}`).
   - [x] Draw AI bounding boxes on live stream.
   - [x] Framerate cap (10 FPS) for streaming.
-  - Serve React SPA static assets from `visionguard/dist/public`.
+  - [x] Serve React SPA static assets from `LilinVision-Web/dist`.
 
-  - [x] Aligned `visionguard/client` frontend to use C++ backend on port 5000.
+  - [x] Aligned `LilinVision-Web` frontend to use C++ backend on port 5000.
 
 ## Phase 5: Deployment & Packaging
 - [x] **Systemd Integration**
@@ -63,7 +64,7 @@ This document tracks the progress of the VMS Lite project, following Clean Archi
 ---
 
 ## Current Status: [Completed]
-- **Last Updated:** Saturday Apr 25, 2026
+- **Last Updated:** Sunday Apr 26, 2026
 - **Final Step:** Ready for release and deployment testing.
 
 ## Questions & Notes

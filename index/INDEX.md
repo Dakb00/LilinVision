@@ -28,7 +28,7 @@ This index serves as a central guide to the LilinVision workspace. Core architec
 - **[research-VMS_Lite_Architecture.md](research-VMS_Lite_Architecture.md)**: Original architectural proposal.
 - **[research-VMS_Lite_Architecture_Recommendations.md](research-VMS_Lite_Architecture_Recommendations.md)**: Strategic recommendations.
 - **[research-Darknet_DarkHelp_Build_Guide.md](research-Darknet_DarkHelp_Build_Guide.md)**: Build instructions.
-- **[research-Web_react_guide.md](research-Web_react_guide.md)**: VisionGuard frontend developer guide.
+- **[research-Web_react_guide.md](research-Web_react_guide.md)**: LilinVision-Web frontend developer guide.
 
 ## 🛠 Dependencies & Environment
 - **[dependencies-darknet.md](dependencies-darknet.md)**: Darknet system requirements.

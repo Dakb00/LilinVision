@@ -1,10 +1,18 @@
-# VMS Lite UI Development Guideline
+# LilinVision-Web Frontend Development Guide
 
-This document defines the recommended frontend architecture for the VMS Lite web management UI. It is based on the current VMS Lite system architecture and current React ecosystem guidance. The VMS Lite frontend is a React SPA compiled to static files, served by the C++ backend, using MJPEG for live streams and REST plus polling for data operations. [file:1] React’s official guidance centers on building UIs from reusable components, Vite is recommended as a modern build tool for React apps, React Router is positioned as a current router bridging React 18 to React 19, and TanStack Query remains a standard choice for managing async server state in React applications. [web:3][web:17][web:28][web:23]
+This document defines the recommended frontend architecture for the VMS Lite web management UI, implemented in the `LilinVision-Web` project. It is based on the current VMS Lite system architecture and current React ecosystem guidance. The VMS Lite frontend is a React SPA compiled to static files, served by the C++ backend, using MJPEG for live streams and REST plus polling for data operations. [file:1] React’s official guidance centers on building UIs from reusable components, Vite is recommended as a modern build tool for React apps, React Router is positioned as a current router bridging React 18 to React 19, and TanStack Query remains a standard choice for managing async server state in React applications. [web:3][web:17][web:28][web:23]
 
 ## Purpose
 
 The UI should support the core operational needs already defined in the architecture: camera management, live preview of RTSP sources through MJPEG, and searchable detection history backed by SQLite. [file:1] The frontend should remain lightweight, operationally focused, and easy to package as static files into `/usr/share/vms-lite/www/` as part of the `.deb` deployment model. [file:1]
+
+## Implementation: LilinVision-Web
+The concrete implementation of this architecture is located in the `LilinVision-Web/` directory. It uses:
+- **React 18/19** with **TypeScript**.
+- **Vite** for building.
+- **Tailwind CSS** for styling (transitioned from plain CSS for better developer velocity).
+- **Lucide React** for iconography.
+- **TanStack Query** for API state.
 
 ## Recommended stack
 

@@ -18,6 +18,7 @@ This project is a lightweight Video Management System (VMS) built with C++17, fo
   - *Model:* `peoplerpeople` (YOLOv4-Tiny variant).
   - *Decision:* Global confidence threshold set to **0.7**. (Note: Future requirement for per-camera thresholds).
   - *Optimization:* `DarkHelp` handles internal image resizing and coordinate scaling automatically, ensuring efficient GPU utilization (when available) and architectural simplicity.
+  - *Notifications:* `WebhookService` provides outbound HTTP JSON notifications for detection events.
   - *Logging:* Darknet startup output is redirected to maintain clean application logs.
 - **Web GUI Integration:** 
   - *Reliability:* Manual file-serving with explicit MIME-type headers (`application/javascript`, `text/css`) to ensure consistent browser rendering.
@@ -46,8 +47,8 @@ This project is a lightweight Video Management System (VMS) built with C++17, fo
 - `src/ports/`: Abstract interfaces.
 - `src/application/`: Service and orchestration logic.
 - `src/adapters/`: Implementation-specific code.
-- `gui/`: Static assets for the React frontend (linked to `visionguard/client/dist`).
-- `visionguard/`: Original React/TypeScript source code (aligned to C++ API).
+- `gui/`: Static assets for the React frontend (linked to `LilinVision-Web/dist`).
+- `LilinVision-Web/`: Original React/TypeScript source code (aligned to C++ API).
 - `vms-lite.service`: Systemd service unit.
 
 ## Status & Progress
@@ -55,9 +56,10 @@ This project is a lightweight Video Management System (VMS) built with C++17, fo
 - [x] Abstract Ports defined.
 - [x] Domain Entities defined.
 - [x] Implement Application Logic (StreamManager).
+- [x] Implement WebhookService for notifications.
 - [x] Implement Adapters (DarkHelp, SQLite, OpenCV).
 - [x] Implement Web Server (Crow) and API endpoints.
-- [x] Align visionguard frontend to C++ backend.
+- [x] Align LilinVision-Web frontend to C++ backend.
 - [x] Coordinate scaling fix and dynamic model path resolution.
 - [x] Systemd and CPack integration.
 - [x] Final Deployment Testing & .deb validation (including proactive dependency validation).
