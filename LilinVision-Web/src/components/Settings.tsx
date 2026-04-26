@@ -100,6 +100,14 @@ export default function Settings() {
           <span>Latest 50 responses shown</span>
         </div>
       </div>
+
+      <div className="bg-gray-800/50 rounded-lg border border-gray-700/50 p-6 flex flex-col items-center gap-4 text-center">
+        <img src="/brand/Merit-LILIN-USA-logo.gif" alt="Lilin USA" className="h-12 opacity-80 hover:opacity-100 transition-opacity" />
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-gray-400">LilinVision VMS Lite Engine</p>
+          <p className="text-xs text-gray-500">© 2026 Merit LILIN. All rights reserved.</p>
+        </div>
+      </div>
     </div>
   )
 }

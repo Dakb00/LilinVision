@@ -20,7 +20,7 @@ function App() {
       {/* Sidebar / Top Nav */}
       <nav className="bg-gray-800 border-b border-gray-700 px-4 py-2 flex items-center justify-between sticky top-0 z-10">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center font-bold">LV</div>
+          <img src="/brand/lilinlogo.webp" alt="Lilin Logo" className="w-8 h-8 object-contain" />
           <span className="font-bold text-xl tracking-tight">LilinVision</span>
         </div>
         

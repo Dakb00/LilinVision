@@ -53,7 +53,10 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Server Dashboard</h1>
+      <div className="flex items-center gap-3">
+        <img src="/brand/lilinlogo.webp" alt="" className="w-8 h-8 opacity-50" />
+        <h1 className="text-2xl font-bold">Server Dashboard</h1>
+      </div>
       
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
