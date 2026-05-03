@@ -10,6 +10,16 @@ This document describes the environment configuration and specific modifications
 ## 1. Prerequisites
 Ensure OrbStack is installed and a default Ubuntu machine is running.
 
+### Private Forks & Submodules
+The submodules `darknet` and `DarkHelp` have been migrated to private GitHub forks to preserve custom patches (like the OpenBLAS fix) across environments:
+- `darknet` -> `https://github.com/Dakb00/darknet-private.git`
+- `DarkHelp` -> `https://github.com/Dakb00/darkhelp-private.git`
+
+When cloning this project on a new machine, ensure you have GitHub CLI (`gh`) or SSH access to your private repos, then run:
+```bash
+git submodule update --init --recursive
+```
+
 ### Host Dependencies
 - Node.js & npm (for building the React frontend)
 
