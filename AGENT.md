@@ -27,6 +27,10 @@ LilinVision is a unified workspace for advanced video surveillance and AI-powere
 
 ## Building and Running
 
+### Mac ARM (OrbStack)
+For building and running on Mac Silicon, follow the **[Mac ARM (OrbStack) Build & Installation Guide](index/mac-arm-orbstack-build-guide.md)**.
+This environment uses an Ubuntu 24.04 VM via OrbStack for the C++ backend and AI components, while building the React frontend on the macOS host.
+
 ### Darknet
 Refer to [darknet/README_DARKNET.md](darknet/README_DARKNET.md) for detailed instructions.
 

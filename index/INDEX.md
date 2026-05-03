@@ -31,6 +31,7 @@ This index serves as a central guide to the LilinVision workspace. Core architec
 - **[research-Web_react_guide.md](research-Web_react_guide.md)**: LilinVision-Web frontend developer guide.
 
 ## 🛠 Dependencies & Environment
+- **[mac-arm-orbstack-build-guide.md](mac-arm-orbstack-build-guide.md)**: Guide for building on Mac ARM via OrbStack.
 - **[dependencies-darknet.md](dependencies-darknet.md)**: Darknet system requirements.
 - **[dependencies-darkhelp.md](dependencies-darkhelp.md)**: DarkHelp system requirements.
 - **[dependencies-zoneminder.md](dependencies-zoneminder.md)**: ZoneMinder system requirements.
