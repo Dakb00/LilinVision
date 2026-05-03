@@ -1,0 +1,9 @@
+[submodule "DarkHelp"]
+	path = DarkHelp
+	url = https://codeberg.org/CCodeRun/DarkHelp.git
+[submodule "darknet"]
+	path = darknet
+	url = https://codeberg.org/CCodeRun/darknet.git
+[submodule "zoneminder"]
+	path = zoneminder
+	url = https://github.com/ZoneMinder/zoneminder.git
